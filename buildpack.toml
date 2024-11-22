@@ -1,0 +1,19 @@
+api = "0.10"
+
+[buildpack]
+  id = "com.wilsonfranca.aws-lambda"
+  name = "AWS Lambda Buildpack"
+  version = "0.0.1"
+
+  [metadata]
+  include-files = ["LICENSE", "README.adoc", "buildpack.toml"]
+
+  [[metadata.configurations]]
+    build = false
+    default = "false"
+    description = "RIE Extension"
+    name = "BP_UNTIME_INTERFACE_EMULATOR"
+
+[[targets]]
+  os = "linux"
+  arch = "amd64"

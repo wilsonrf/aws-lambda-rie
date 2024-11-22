@@ -6,7 +6,7 @@ api = "0.10"
   version = "0.0.1"
 
   [metadata]
-  include-files = ["LICENSE", "README.adoc", "buildpack.toml"]
+  include-files = ["LICENSE", "README.adoc", "buildpack.toml", "linux/amd64/bin/build", "linux/amd64/bin/detect"]
 
   [[metadata.configurations]]
     build = false

@@ -1,6 +1,10 @@
 package lambda
 
-import "github.com/paketo-buildpacks/packit/v2"
+import (
+	"os"
+
+	"github.com/paketo-buildpacks/packit/v2"
+)
 
 type Detect struct{}
 
@@ -10,15 +14,21 @@ const (
 )
 
 func (d *Detect) Detect(context packit.DetectContext) (packit.DetectResult, error) {
-	return packit.DetectResult{
+	result := packit.DetectResult{
 		Plan: packit.BuildPlan{
 			Provides: []packit.BuildPlanProvision{
 				{Name: PlanEntryAwsLambda},
 			},
 			Requires: []packit.BuildPlanRequirement{
 				{Name: PlanEntryAwsLambda},
-				{Name: PlanEntryCustomRuntimeEmulator},
 			},
 		},
-	}, nil
+	}
+	if env, ok := os.LookupEnv("BP_AWS_RIE"); ok {
+		if env == "true" {
+			result.Plan.Requires = append(result.Plan.Requires, packit.BuildPlanRequirement{Name: PlanEntryCustomRuntimeEmulator})
+		}
+	}
+
+	return result, nil
 }

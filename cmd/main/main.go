@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/paketo-buildpacks/packit/v2"
-	"github.com/wilsonrf/aws-lambda/lambda"
+	"github.com/wilsonrf/aws-lambda-rie-buildpack/lambda"
 )
 
 func main() {

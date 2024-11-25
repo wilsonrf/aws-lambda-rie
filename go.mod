@@ -1,4 +1,4 @@
-module github.com/wilsonrf/aws-lambda
+module github.com/wilsonrf/aws-lambda-rie-buildpack
 
 go 1.22.2
 

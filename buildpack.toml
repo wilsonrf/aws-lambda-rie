@@ -1,19 +1,23 @@
 api = "0.10"
 
 [buildpack]
-  id = "com.wilsonfranca.aws-lambda"
-  name = "AWS Lambda Buildpack"
-  version = "0.0.1"
+  id = "wilsonrf/com.wilsonfranca.aws-lambda-rie"
+  name = "AWS Lambda RIE Buildpack"
+  version = "0.1.0"
 
   [metadata]
-  include-files = ["LICENSE", "README.adoc", "buildpack.toml", "linux/amd64/bin/build", "linux/amd64/bin/detect"]
+  include-files = ["LICENSE", "README.adoc", "buildpack.toml", "bin/run","bin/build","bin/detect"]
+  pre-package = "./scripts/build.sh"
 
   [[metadata.configurations]]
     build = false
     default = "false"
     description = "RIE Extension"
-    name = "BP_UNTIME_INTERFACE_EMULATOR"
+    name = "BP_RUNTIME_INTERFACE_EMULATOR"
 
 [[targets]]
   os = "linux"
   arch = "amd64"
+
+[[stacks]]
+  id = "com.wilsonfranca.stacks.amazonlinux"

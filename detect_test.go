@@ -16,7 +16,6 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		Expect = NewWithT(t).Expect
 
 		workingDir string
-		detector   awslambdarie.Detect
 		detect     packit.DetectFunc
 	)
 
@@ -25,20 +24,54 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = os.MkdirTemp("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
-		detect = detector.Detect
+		detect = awslambdarie.Detect()
 	})
 
 	it.After(func() {
 		Expect(os.RemoveAll(workingDir)).To(Succeed())
 	})
 
-	context("when conditions for detect true are met", func() {
-		it("detects", func() {
-			result, err := detect(packit.DetectContext{
-				WorkingDir: workingDir,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(result.Plan).To(Equal(packit.BuildPlan{}))
+	it("should detect if BP_AWS_RIE is true", func() {
+		Expect(os.Setenv("BP_AWS_RIE", "true")).To(Succeed())
+
+		result, err := detect(packit.DetectContext{
+			WorkingDir: workingDir,
 		})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(result).To(Equal(packit.DetectResult{
+			Plan: packit.BuildPlan{
+				Provides: []packit.BuildPlanProvision{
+					{Name: awslambdarie.PlanEntryAwsLambda},
+				},
+				Requires: []packit.BuildPlanRequirement{
+					{Name: awslambdarie.PlanEntryAwsLambda},
+					{Name: awslambdarie.PlanEntryCustomRuntimeEmulator},
+				},
+			},
+		}))
+	})
+
+	it("should detect false if BP_AWS_RIE is false", func() {
+		Expect(os.Setenv("BP_AWS_RIE", "false")).To(Succeed())
+
+		result, err := detect(packit.DetectContext{
+			WorkingDir: workingDir,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(result).To(Equal(packit.DetectResult{}))
+
+	})
+
+	it("should detect false if BP_AWS_RIE is not present", func() {
+		Expect(os.Unsetenv("BP_AWS_RIE")).To(Succeed())
+
+		result, err := detect(packit.DetectContext{
+			WorkingDir: workingDir,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(result).To(Equal(packit.DetectResult{}))
 	})
 }

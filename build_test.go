@@ -1,10 +1,12 @@
 package awslambdarie_test
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
 	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/scribe"
 	"github.com/sclevine/spec"
 	awslambdarie "github.com/wilsonrf/aws-lambda-rie-buildpack"
 
@@ -18,12 +20,15 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		layersDir  string
 		workingDir string
 		cnbDir     string
-		builder    awslambdarie.Build
+		buffer     *bytes.Buffer
+		logger     scribe.Emitter
 		build      packit.BuildFunc
 	)
 
 	it.Before(func() {
 		var err error
+		buffer = bytes.NewBuffer(nil)
+		logger = scribe.NewEmitter(buffer)
 		layersDir, err = os.MkdirTemp("", "layers")
 		Expect(err).NotTo(HaveOccurred())
 
@@ -33,7 +38,8 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = os.MkdirTemp("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
-		build = builder.Build
+		build = awslambdarie.Build(logger)
+
 	})
 
 	it.After(func() {
@@ -42,27 +48,19 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(os.RemoveAll(workingDir)).To(Succeed())
 	})
 
-	it("returns a result that builds correctly", func() {
-		result, err := build(packit.BuildContext{
+	it("should add a runtime interface emulator", func() {
+		br, err := build(packit.BuildContext{
 			WorkingDir: workingDir,
+			Layers:     packit.Layers{Path: layersDir},
 			CNBPath:    cnbDir,
-			Stack:      "some-stack",
-			BuildpackInfo: packit.BuildpackInfo{
-				Name:    "Some Buildpack",
-				Version: "some-version",
-			},
-			Plan: packit.BuildpackPlan{
-				Entries: []packit.BuildpackPlanEntry{},
-			},
-			Layers: packit.Layers{Path: layersDir},
 		})
 		Expect(err).NotTo(HaveOccurred())
-
-		Expect(result).To(Equal(packit.BuildResult{
-			Plan: packit.BuildpackPlan{
-				Entries: nil,
-			},
-			Layers: nil,
-		}))
+		Expect(br.Layers[0]).To(HaveField("Name", "emulator"))
+		Expect(br.Layers[0]).To(HaveField("Launch", true))
+		Expect(br.Layers[0]).To(HaveField("Build", true))
+		Expect(br.Layers[0]).To(HaveField("Cache", true))
+		Expect(br.Launch.DirectProcesses[0]).To(HaveField("Type", "aws-lambda-rie"))
+		Expect(br.Launch.DirectProcesses[0]).To(HaveField("Command", []string{"/home/cnb/.aws-lambda-rie/aws-lambda-rie"}))
+		Expect(br.Launch.DirectProcesses[0]).To(HaveField("Default", false))
 	})
 }

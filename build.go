@@ -1,37 +1,35 @@
 package awslambdarie
 
 import (
-	"os"
-
 	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
 
-type Build struct{}
+func Build(logger scribe.Emitter) packit.BuildFunc {
+	return func(context packit.BuildContext) (packit.BuildResult, error) {
 
-func (b *Build) Build(context packit.BuildContext) (packit.BuildResult, error) {
+		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 
-	result := packit.BuildResult{}
+		result := packit.BuildResult{}
 
-	if env, ok := os.LookupEnv("BP_AWS_RIE"); ok {
-		if env == "true" {
-			layer, err := context.Layers.Get("emulator")
-			if err != nil {
-				return result, err
-			}
-			layer.Reset()
-			layer.Launch = true
-			layer.Cache = true
-			layer.Build = true
+		layer, err := context.Layers.Get("emulator")
 
-			p := packit.DirectProcess{
-				Type:    "aws-lambda-rie",
-				Command: []string{"/home/cnb/.aws-lambda-rie/aws-lambda-rie"},
-				Default: false,
-			}
-			result.Layers = append(result.Layers, layer)
-			result.Launch.DirectProcesses = append(result.Launch.DirectProcesses, p)
+		if err != nil {
+			return result, err
 		}
-	}
+		layer.Reset()
+		layer.Launch = true
+		layer.Cache = true
+		layer.Build = true
 
-	return result, nil
+		p := packit.DirectProcess{
+			Type:    "aws-lambda-rie",
+			Command: []string{"/home/cnb/.aws-lambda-rie/aws-lambda-rie"},
+			Default: false,
+		}
+		result.Layers = append(result.Layers, layer)
+		result.Launch.DirectProcesses = append(result.Launch.DirectProcesses, p)
+
+		return result, nil
+	}
 }

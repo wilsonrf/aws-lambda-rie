@@ -4,31 +4,37 @@ import (
 	"os"
 
 	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
-
-type Detect struct{}
 
 const (
 	PlanEntryAwsLambda             = "aws-lambda"
 	PlanEntryCustomRuntimeEmulator = "aws-custom-runtime-emulator-extension"
 )
 
-func (d *Detect) Detect(context packit.DetectContext) (packit.DetectResult, error) {
-	result := packit.DetectResult{
-		Plan: packit.BuildPlan{
-			Provides: []packit.BuildPlanProvision{
-				{Name: PlanEntryAwsLambda},
-			},
-			Requires: []packit.BuildPlanRequirement{
-				{Name: PlanEntryAwsLambda},
-			},
-		},
-	}
-	if env, ok := os.LookupEnv("BP_AWS_RIE"); ok {
-		if env == "true" {
-			result.Plan.Requires = append(result.Plan.Requires, packit.BuildPlanRequirement{Name: PlanEntryCustomRuntimeEmulator})
+func Detect() packit.DetectFunc {
+	return func(context packit.DetectContext) (packit.DetectResult, error) {
+		logger := scribe.NewLogger(os.Stdout)
+		if env, ok := os.LookupEnv("BP_AWS_RIE"); ok {
+			logger.Detail("BP_AWS_RIE: %v", env)
+			if env == "true" {
+				logger.Detail("BP_AWS_RIE is true")
+				return packit.DetectResult{
+					Plan: packit.BuildPlan{
+						Provides: []packit.BuildPlanProvision{
+							{Name: PlanEntryAwsLambda},
+						},
+						Requires: []packit.BuildPlanRequirement{
+							{Name: PlanEntryAwsLambda},
+							{Name: PlanEntryCustomRuntimeEmulator},
+						},
+					},
+				}, nil
+			} else {
+				return packit.DetectResult{}, nil
+			}
 		}
-	}
 
-	return result, nil
+		return packit.DetectResult{}, nil
+	}
 }

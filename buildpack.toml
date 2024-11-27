@@ -20,4 +20,4 @@ api = "0.10"
   arch = "amd64"
 
 [[stacks]]
-  id = "com.wilsonfranca.stacks.amazonlinux"
+  id = "com.wilsonfranca.stacks.amazonlinux.al2023"

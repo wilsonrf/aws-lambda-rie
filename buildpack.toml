@@ -18,6 +18,7 @@ api = "0.10"
 
 [buildpack]
   id = "wilsonrf/com.wilsonfranca.aws-lambda-rie"
+  homepage = "https://github.com/wilsonrf/aws-lambda-rie"
   name = "AWS Lambda RIE Buildpack"
   version = "0.0.1"
 

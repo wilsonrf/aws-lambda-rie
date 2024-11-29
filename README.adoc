@@ -1,0 +1,6 @@
+:github: https://github.com/wilsonrf/aws-lambda-rie
+:registry: ghcr.io/wilsonrf/aws-lambda-rie
+
+= AWS Lambda RIE Buildpack
+
+link:{registry}[{registry}]
